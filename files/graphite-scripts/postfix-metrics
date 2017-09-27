@@ -1,0 +1,10 @@
+#!/bin/bash
+#
+# File managed by Puppet
+#
+
+source /opt/graphite/graphite_functions
+
+PREFIX="$PREFIX.postfix"
+
+logster --output=graphite --metric-prefix=${PREFIX} --graphite-host=$GRAPHITE_HOST:$GRAPHITE_PORT PostfixLogster /var/log/mail.log

@@ -1,0 +1,79 @@
+#!/bin/bash
+# Please only use:
+#
+# $GRAPHITE_HOST
+# $GRAPHITE_PORT
+# $PREFIX
+# send "$KEY" "$VALUE"
+
+LOCK=/tmp/graphite-`basename $0`.lock
+
+if [ -z "$1" ]; then
+  echo 'Server not specified'
+  exit 1
+fi
+
+if [ -z "$2" ]; then
+  echo 'Port not specified'
+  exit 1
+fi
+
+GRAPHITE_HOST=$1
+GRAPHITE_PORT=$2
+
+# Prefix can be explicitly povided in /opt/graphite/prefix as single line string
+if [ -f "/opt/graphite/prefix" ]; then
+  PREFIX=`cat /opt/graphite/prefix`
+fi
+
+# If file exists, ensure PREFIX is not empty
+if [ -z "$PREFIX" ]; then
+  NAME=`hostname | cut -f1 -d\.`
+  DATACENTRE=`hostname -f | cut -f2 -d\.`
+  HOST=`hostname -f | cut -f1 -d\.`
+  PREFIX="server.${DATACENTRE}.${HOST}"
+fi
+
+TIME=$(date +%s)
+
+# Kill any long running metrics process (running over 2 mins)
+PID=`pgrep -f "nc -q0 ${GRAPHITE_HOST} ${GRAPHITE_PORT}"`
+if [ "$PID" != "" ]; then
+  THRESHOLD=$(( 60 * 2 ))
+  HZ=`getconf CLK_TCK`
+  UPTIME=$(awk -F. '{print $1}' < /proc/uptime)
+  STARTTIME=$(awk '{print $22}' < /proc/$PID/stat)
+  STARTTIME=$(( $STARTTIME / $HZ ))
+  RUNTIME=$(( $UPTIME - $STARTTIME ))
+
+  if [ "$RUNTIME" != "" ]; then
+    if [ $RUNTIME -ge $THRESHOLD ]; then
+      echo "[Metrics job running for $RUNTIME mins] Killing sleeping process: $PID"
+      kill $PID
+    fi
+  fi
+fi
+
+# Locking function
+lock() {
+  # Create lockfile
+  eval "exec 200>$LOCK"
+
+  # Get lock
+  flock -n 200 && return 0 || return 1
+}
+
+do_exit() {
+  echo "Unable to establish lock"
+  exit 1
+}
+
+# Function to send data to a remote host:port address.
+send () {
+  LINE="$1 $2 $TIME"
+
+  echo "$LINE"
+  echo $LINE | nc -q0 $GRAPHITE_HOST $GRAPHITE_PORT
+}
+
+lock || do_exit

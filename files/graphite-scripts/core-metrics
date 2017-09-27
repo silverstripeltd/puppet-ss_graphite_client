@@ -1,0 +1,147 @@
+#!/bin/bash
+#
+# File managed by Puppet
+#
+
+source /opt/graphite/graphite_functions
+
+# For each interface stats
+grep ":" /proc/net/dev | grep -v "lo" | while read -r LINE; do
+
+  set -- $LINE
+
+  INTERFACE=`echo $1 | sed s/://`
+
+  send "$PREFIX.net.$INTERFACE.rx.bytes" "${2}"
+  send "$PREFIX.net.$INTERFACE.rx.count" "${3}"
+  send "$PREFIX.net.$INTERFACE.rx.error" "${4}"
+  send "$PREFIX.net.$INTERFACE.rx.drop" "${5}"
+  send "$PREFIX.net.$INTERFACE.tx.bytes" "${10}"
+  send "$PREFIX.net.$INTERFACE.tx.count" "${11}"
+  send "$PREFIX.net.$INTERFACE.tx.error" "${12}"
+  send "$PREFIX.net.$INTERFACE.tx.drop" "${13}"
+
+done
+
+# Load Average
+if [ -f /proc/loadavg ]; then
+  LOAD=`cat /proc/loadavg`
+  set -- $LOAD
+  send "$PREFIX.loadavg.1min" "$1"
+  send "$PREFIX.loadavg.5min" "$2"
+  send "$PREFIX.loadavg.15min" "$3"
+fi
+
+# Grab TCP Connection Data
+tcp_stats=$(mktemp)
+/bin/netstat -s --tcp > $tcp_stats
+
+  grep 'connections* opening' $tcp_stats| while read -r LINE; do
+    set -- $LINE
+    send "$PREFIX.net.tcp.connections.$2" "$1"
+  done
+
+  tcp_failed=`grep 'failed connection attempts' $tcp_stats|awk '{print $1}'`
+  send "$PREFIX.net.tcp.connections.failed" "$tcp_failed"
+  # Grab TCP Reset Data
+
+  grep reset $tcp_stats|grep -v due |awk '{print $1 " " $NF}' | while read -r LINE; do
+    set -- $LINE
+    send "$PREFIX.net.tcp.resets.$2" "$1"
+  done;
+
+rm -f $tcp_stats;
+
+# Memory usage
+MEM_STATS=$(mktemp)
+/usr/bin/vmstat -s --unit B> $MEM_STATS
+  MEM=`grep -i 'B total memory' $MEM_STATS|awk '{print $1}'`
+  send "$PREFIX.memory.total" "$MEM"
+  MEM=`grep -i 'B used memory' $MEM_STATS|awk '{print $1}'`
+  send "$PREFIX.memory.used" "$MEM"
+  MEM=`grep -i 'B active memory' $MEM_STATS|awk '{print $1}'`
+  send "$PREFIX.memory.active" "$MEM"
+  MEM=`grep -i 'B inactive memory' $MEM_STATS|awk '{print $1}'`
+  send "$PREFIX.memory.inactive" "$MEM"
+  MEM=`grep -i 'B free memory' $MEM_STATS|awk '{print $1}'`
+  send "$PREFIX.memory.free" "$MEM"
+  MEM=`grep -i 'B buffer memory' $MEM_STATS|awk '{print $1}'`
+  send "$PREFIX.memory.buffer" "$MEM"
+  MEM=`grep -i 'B swap cache' $MEM_STATS|awk '{print $1}'`
+  send "$PREFIX.memory.swap-cache" "$MEM"
+  MEM=`grep -i 'B total swap' $MEM_STATS|awk '{print $1}'`
+  send "$PREFIX.memory.swap-total" "$MEM"
+  MEM=`grep -i 'B used swap' $MEM_STATS|awk '{print $1}'`
+  send "$PREFIX.memory.swap-used" "$MEM"
+  MEM=`grep -i 'B free swap' $MEM_STATS|awk '{print $1}'`
+  send "$PREFIX.memory.swap-free" "$MEM"
+  MEM=`grep -i 'pages paged in' $MEM_STATS|awk '{print $1}'`
+  send "$PREFIX.memory.paged-in" "$MEM"
+  MEM=`grep -i 'pages paged out' $MEM_STATS|awk '{print $1}'`
+  send "$PREFIX.memory.paged-out" "$MEM"
+  MEM=`grep -i 'pages swapped in' $MEM_STATS|awk '{print $1}'`
+  send "$PREFIX.memory.swapped-in" "$MEM"
+  MEM=`grep -i 'pages swapped out' $MEM_STATS|awk '{print $1}'`
+  send "$PREFIX.memory.swapped-out" "$MEM"
+rm -f $MEM_STATS;
+
+# Kernel available memory (https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=34e431b0ae398fc54ea69ff85ec700722c9da773)
+MEM=`grep MemAvailable /proc/meminfo | awk '{print $2*1024}'`
+send "$PREFIX.memory.available" "$MEM"
+
+# IO Stats
+iostat_line=`iostat -y 1 1 | awk 'FNR==4'`
+rc=$?
+if [ $rc -eq 0 ]; then
+  set -- $iostat_line
+  send "$PREFIX.iostat.user" "$1"
+  send "$PREFIX.iostat.nice" "$2"
+  send "$PREFIX.iostat.system" "$3"
+  send "$PREFIX.iostat.iowait" "$4"
+  send "$PREFIX.iostat.steal" "$5"
+  send "$PREFIX.iostat.idle" "$6"
+fi
+
+# CPU Stats
+if [ -x /usr/bin/mpstat ]; then
+  /usr/bin/mpstat -P ALL 1 1 | grep -iv average | awk '{if ($2 ~ /^[0-9]+$/) print}' | while read -r LINE; do
+    set -- $LINE
+    CPU=$2
+
+    send "$PREFIX.cpu.${CPU}.user" "$3"
+    send "$PREFIX.cpu.${CPU}.nice" "$4"
+    send "$PREFIX.cpu.${CPU}.system" "$5"
+    send "$PREFIX.cpu.${CPU}.iowait" "$6"
+    send "$PREFIX.cpu.${CPU}.irq" "$7"
+    send "$PREFIX.cpu.${CPU}.soft" "$8"
+    send "$PREFIX.cpu.${CPU}.steal" "${9}"
+    send "$PREFIX.cpu.${CPU}.guest" "${10}"
+    send "$PREFIX.cpu.${CPU}.gnice" "${11}"
+    send "$PREFIX.cpu.${CPU}.idle" "${12}"
+  done;
+fi;
+
+# Disk inodes
+df -il 2>/dev/null | awk '{if ($1 ~ /^\/.*/) print}' |  while read -r i; do
+  MOUNTPOINT=$(echo $i | awk '{print $1}' | awk -F/ '{print $NF}')
+  INODESUSED=$(echo $i | awk '{print $3}')
+  INODESFREE=$(echo $i | awk '{print $4}')
+  PERCENT=$(echo $i | awk '{print $5}' | tr -d \% )
+
+  send "$PREFIX.storage.${MOUNTPOINT}.inodes-used" "$INODESUSED"
+  send "$PREFIX.storage.${MOUNTPOINT}.inodes-free" "$INODESFREE"
+done
+
+# Disk space free
+df -l 2>/dev/null | awk '{if ($1 ~ /^\/.*/) print}' |  while read -r i; do
+  MOUNTPOINT=$(echo $i | awk '{print $1}' | awk -F/ '{print $NF}')
+  INODESUSED=$(echo $i | awk '{print $3}')
+  INODESFREE=$(echo $i | awk '{print $4}')
+  PERCENT=$(echo $i | awk '{print $5}' | tr -d \% )
+
+  send "$PREFIX.storage.${MOUNTPOINT}.used" "$PERCENT"
+done
+
+# Process count
+PSCOUNT=`ps aux | wc -l`
+send "$PREFIX.processes.count" "$PSCOUNT"

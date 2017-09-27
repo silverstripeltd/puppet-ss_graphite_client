@@ -1,0 +1,32 @@
+#!/bin/bash
+#
+# File managed by Puppet
+#
+
+source /opt/graphite/graphite_functions
+
+# Generate Nginx Data
+PATTERN="\s*[0-9]\s*[0-9]\s*[0-9]\s*$"
+
+# Active connections: 2
+# server accepts handled requests
+#  7287 7287 7605
+# Reading: 0 Writing: 1 Waiting: 1
+
+unset http_proxy && curl --connect-timeout 1 -sb --header 'Host: nginxstatus' http://localhost/nginx_status 2> /dev/null | while read -r LINE; do
+
+  set -- $LINE
+
+  if [[ "$LINE" == "Active connections:"* ]]; then
+    send "$PREFIX.nginx.current.active_conns" "$3"
+  elif [[ "$LINE" == "Reading:"* ]]; then
+    send "$PREFIX.nginx.current.reading" "$2"
+    send "$PREFIX.nginx.current.writing" "$4"
+    send "$PREFIX.nginx.current.waiting" "$6"
+  elif [[ $LINE =~ $PATTERN ]]; then
+    send "$PREFIX.nginx.total.accepts_conns" "$1"
+    send "$PREFIX.nginx.total.handled_conns" "$2"
+    send "$PREFIX.nginx.total.requests" "$3"
+  fi
+
+done
