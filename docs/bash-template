@@ -1,0 +1,6 @@
+#!/bin/bash
+# File managed by Puppet
+
+source /opt/graphite/graphite_functions
+
+send "$PREFIX.memory.total" "10"

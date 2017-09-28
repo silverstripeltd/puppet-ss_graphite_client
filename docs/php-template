@@ -1,0 +1,16 @@
+#!/usr/bin/php
+<?php
+
+require_once '/opt/graphite/graphite_functions.php';
+
+# Send in bulk
+
+$stats = [
+	"$prefix.memory.total" => "10",
+	"$prefix.memory.used" => "5",
+];
+sendHash($stats);
+
+# or one by one
+
+send("$prefix.memory.total", "10");
