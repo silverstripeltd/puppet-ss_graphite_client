@@ -9,6 +9,7 @@ import time
 import re
 import math
 import functools
+import httpagentparser
 import socket
 
 from logster.logster_helper import MetricObject, LogsterParser
@@ -116,6 +117,25 @@ class SSLogster(LogsterParser):
                 elif req_type == "POST":
                     self.postreq += 1
 
+                # Process request UA browser and OS
+                ua = httpagentparser.detect(req_ua)
+
+                if ua['os']['name'] in self.uaos:
+                    self.uaos[ua['os']['name']] += 1
+                else:
+                    self.uaos[ua['os']['name']] = 1
+
+                if ua['browser']['name'] in self.uabrowser:
+                    self.uabrowser[ua['browser']['name']] += 1
+                else:
+                    self.uabrowser[ua['browser']['name']] = 1
+
+                major_version = ua['browser']['version'][0:ua['browser']['version'].find(".")]
+                uacombined_key = ua['browser']['name'] + " " + major_version
+                if uacombined_key in self.uacombined:
+                    self.uacombined[uacombined_key] += 1
+                else:
+                    self.uacombined[uacombined_key] = 1
             else:
                 raise LogsterParsingException, "data format looks bad (no space)"
 
@@ -162,6 +182,15 @@ class SSLogster(LogsterParser):
             MetricObject("status.http_4xx", ((self.http_4xx / self.duration) * 60), "Responses per min"),
             MetricObject("status.http_5xx", ((self.http_5xx / self.duration) * 60), "Responses per min"),
         ]
+
+        for os,oscnt in self.uaos.items():
+            metrics.append(MetricObject("useragent.os." + os, ((oscnt / self.duration) * 60), "Requests per min"))
+
+        for browser,browsercnt in self.uabrowser.items():
+            metrics.append(MetricObject("useragent.browser." + browser.replace(" ","_"), ((browsercnt / self.duration) * 60), "Requests per min"))
+
+        for combined,comcnt in self.uacombined.items():
+            metrics.append(MetricObject("useragent.combined." + combined.replace(" ","_"), ((comcnt / self.duration) * 60), "Requests per min"))
 
         return metrics
 
