@@ -1,7 +1,7 @@
 ### File managed by puppet
 ###
 ###  SS logster parser to process Graphite based apache log
-###  
+###
 ###  sudo ./logster --dry-run --output=ganglia SSLogster /var/log/httpd/access_log
 ###
 
@@ -91,7 +91,7 @@ class SSLogster(LogsterParser):
 
                 # Process request time and size
                 if (req_size != 0) and (req_time != 0):
-                    
+
                     if req_size > self.reqsize_high:
                         self.reqsize_high = req_size
 
@@ -142,6 +142,7 @@ class SSLogster(LogsterParser):
             MetricObject("request.time_high", (self.reqtime_high / 1000), "ms"),
             MetricObject("request.time_low",  (self.reqtime_low / 1000), "ms"),
             MetricObject("request.time_95",   (self.percentile(self.reqtime_list, 0.95) / 1000), "ms"),
+            MetricObject("request.time_99",   (self.percentile(self.reqtime_list, 0.99) / 1000), "ms"),
             MetricObject("request.time_05",   (self.percentile(self.reqtime_list, 0.05) / 1000), "ms"),
 
             MetricObject("request.size_avg",  (reqsize_avg), "B"),
