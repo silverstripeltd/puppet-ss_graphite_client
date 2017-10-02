@@ -37,7 +37,7 @@ fi
 TIME=$(date +%s)
 
 # Kill any long running metrics process (running over 2 mins)
-PID=`pgrep -f "nc -q0 ${GRAPHITE_HOST} ${GRAPHITE_PORT}"`
+PID=$(pgrep -f "nc -q0 ${GRAPHITE_HOST} ${GRAPHITE_PORT}" || echo "")
 if [ "$PID" != "" ]; then
   THRESHOLD=$(( 60 * 2 ))
   HZ=`getconf CLK_TCK`
