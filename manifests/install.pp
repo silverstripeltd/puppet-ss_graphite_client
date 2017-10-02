@@ -1,4 +1,4 @@
-class graphite::install inherits graphite {
+class ss_graphite_client::install inherits ss_graphite_client {
 
   package {
     realpath: ensure => installed;
@@ -24,7 +24,7 @@ class graphite::install inherits graphite {
     owner => root,
     group => root,
     mode => 0755,
-    source => "puppet:///modules/graphite/logster-parsers",
+    source => "puppet:///modules/ss_graphite_client/logster-parsers",
   }
 
   file {'/opt/graphite':
@@ -42,14 +42,14 @@ class graphite::install inherits graphite {
     owner   => root,
     group   => root,
     mode    => 755,
-    source  => "puppet:///modules/graphite/graphite_functions",
+    source  => "puppet:///modules/ss_graphite_client/graphite_functions",
   }
 
   file {'/opt/graphite/graphite_functions.php':
       owner   => root,
       group   => root,
       mode    => 755,
-      source  => "puppet:///modules/graphite/graphite_functions.php",
+      source  => "puppet:///modules/ss_graphite_client/graphite_functions.php",
   }
 
   file { "/etc/cron.d/graphite-scripts":
