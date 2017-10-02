@@ -1,10 +1,10 @@
-class graphite::nginx_status {
+class ss_graphite_client::nginx_status {
 
 	file {'/opt/graphite/scripts/nginx-status':
 		owner   => root,
 		group   => root,
 		mode    => 755,
-		source  => "puppet:///modules/graphite/graphite-scripts/nginx-status-metrics",
+		source  => "puppet:///modules/ss_graphite_client/graphite-scripts/nginx-status-metrics",
 	}
 
 }

@@ -5,7 +5,7 @@
 Add the following to your manifest:
 
 ```puppet
-class {'graphite':
+class {'ss_graphite_client':
 	graphite_server => 'metrics.my.com',
 }
 ```
@@ -19,7 +19,7 @@ By default, *graphite-functions* library will try to figure out a prefix that ma
 Metrics are grouped in classes. You enable them by including the relevant class:
 
 ```puppet
-include graphite::core
+include ss_graphite_client::core
 ```
 
 ## Adding custom metrics

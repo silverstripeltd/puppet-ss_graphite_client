@@ -1,4 +1,4 @@
-class graphite::server {
+class ss_graphite_client::server {
 
 	package {
 		graphite-web: ensure => installed;
