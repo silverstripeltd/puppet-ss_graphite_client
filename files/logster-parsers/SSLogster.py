@@ -149,6 +149,7 @@ class SSLogster(LogsterParser):
             MetricObject("request.size_low",  (self.reqsize_low), "B"),
             MetricObject("request.size_95",   (self.percentile(self.reqsize_list, 0.95)), "B"),
             MetricObject("request.size_05",   (self.percentile(self.reqsize_list, 0.05)), "B"),
+            MetricObject("request.size_total",  (self.reqsize_tot), "B"),
 
             MetricObject("request.get_count", ((self.getreq  / self.duration) * 60), "Responses per min"),
             MetricObject("request.post_count", ((self.postreq / self.duration) * 60), "Responses per min"),
