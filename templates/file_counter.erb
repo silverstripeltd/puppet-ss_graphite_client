@@ -1,0 +1,14 @@
+#!/bin/bash
+set -e
+
+source /opt/graphite/graphite_functions
+
+<% @dirs.each do |dir| -%>
+if [ -d "<%= dir %>" ]; then
+    COUNT=$(find "<%= dir %>" | wc -l)
+    METRIC="$PREFIX.dir_counter.<%= dir.to_s().gsub(/[^0-9A-Za-z_]/, '_') %>"
+    if [ "$COUNT" != "" ]; then
+        send "$METRIC" "$COUNT"
+    fi
+fi
+<% end -%>
