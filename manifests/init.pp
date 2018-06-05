@@ -5,4 +5,5 @@ class ss_graphite_client (
 
 	class { 'ss_graphite_client::install': }
 
+	create_resources(ss_graphite_client::tcp_queue_size, hiera('ss_graphite_client::tcp_queue_size', {}))
 }
