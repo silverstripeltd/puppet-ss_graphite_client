@@ -1,11 +1,12 @@
-#!/bin/bash
-set -euo pipefail
+#!/usr/bin/env bash
+set -eo pipefail
+shopt -s nullglob globstar
 
 source /opt/graphite/graphite_functions
 
-LINE=$(ss -lti '( sport = :<%= @real_port %> )' | grep unacked) || true
+LINE="$(ss -lti '( sport = :<%= @real_port %> )' | grep unacked)" || true
 if [ "$LINE" != "" ]; then
-	QSIZE=$(expr "$LINE" : '.*unacked:\([0-9]*\).*')
+	QSIZE="$(expr "$LINE" : '.*unacked:\([0-9]*\).*')"
 else
 	QSIZE="0"
 fi
