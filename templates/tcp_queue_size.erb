@@ -1,0 +1,13 @@
+#!/bin/bash
+set -euo pipefail
+
+source /opt/graphite/graphite_functions
+
+LINE=$(ss -lti '( sport = :<%= @real_port %> )' | grep unacked) || true
+if [ "$LINE" != "" ]; then
+	QSIZE=$(expr "$LINE" : '.*unacked:\([0-9]*\).*')
+else
+	QSIZE="0"
+fi
+METRIC="$PREFIX.tcp_queue_size.<%= @name %>"
+send "$METRIC" "$QSIZE"
