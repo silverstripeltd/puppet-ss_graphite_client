@@ -1,0 +1,31 @@
+#!/usr/bin/env php
+<?php
+
+if (!file_exists('/opt/graphite/graphite_functions.php') || !file_exists('/etc/nginx/letsencrypt')) {
+    exit(0);
+}
+
+require_once '/opt/graphite/graphite_functions.php';
+
+list($serverName,) = explode(".", trim(`hostname -f`));
+
+$now = time();
+$numberSANS = 0;
+
+foreach (glob("/etc/nginx/letsencrypt/*crt") as $certFile) {
+    $certName = basename($certFile);
+    $certName = substr($certName, 0, strrpos($certName, '.'));
+    $certData = openssl_x509_parse(file_get_contents($certFile));
+    $certExpiry = $certData['validTo_time_t'];
+
+    if (isset($certData['extensions'])) {
+        $certSANS = $certData['extensions']['subjectAltName'];
+        $numberSANS ++;
+    }
+
+    $expireDays = ($certExpiry - $now) / (60 * 60 * 24);
+    $stats["$prefix.letsencrypt.certs.$certName.days_to_expire"] = (int)$expireDays;
+}
+
+$stats["$prefix.letsencrypt.certs.total_sans"] = $numberSANS;
+sendHash($stats);
