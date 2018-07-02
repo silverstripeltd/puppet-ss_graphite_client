@@ -20,7 +20,7 @@ foreach (glob("/etc/nginx/letsencrypt/*crt") as $certFile) {
 
     if (isset($certData['extensions'])) {
         $certSANS = $certData['extensions']['subjectAltName'];
-        $numberSANS ++;
+        $numberSANS = $numberSANS + count(explode(',', $certSANS));
     }
 
     $expireDays = ($certExpiry - $now) / (60 * 60 * 24);
