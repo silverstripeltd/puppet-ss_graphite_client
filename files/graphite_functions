@@ -74,7 +74,7 @@ send () {
   LINE="$1 $2 $TIME"
 
   echo "$LINE"
-  echo $LINE | nc -q0 $GRAPHITE_HOST $GRAPHITE_PORT
+  echo $LINE | nc -w5 -q0 $GRAPHITE_HOST $GRAPHITE_PORT
 }
 
 lock || do_exit
