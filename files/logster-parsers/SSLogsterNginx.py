@@ -18,13 +18,12 @@ class SSLogsterNginx(LogsterParser):
         of the tasty bits we find in the log we are parsing.'''
 
         self.reqcnt = 0
-
         self.http_1xx = 0
         self.http_2xx = 0
         self.http_3xx = 0
         self.http_4xx = 0
+        self.http_429 = 0
         self.http_5xx = 0
-
         self.getreq = 0
         self.postreq = 0
 
@@ -61,6 +60,9 @@ class SSLogsterNginx(LogsterParser):
                 else:
                     self.http_5xx += 1
 
+                if (status == 429):
+                    self.http_429 += 1
+
                 # Porcess request types
                 if req_type == "GET":
                     self.getreq += 1
@@ -89,6 +91,8 @@ class SSLogsterNginx(LogsterParser):
             MetricObject("status.http_3xx", ((self.http_3xx / self.duration) * 60), "Responses per min"),
             MetricObject("status.http_4xx", ((self.http_4xx / self.duration) * 60), "Responses per min"),
             MetricObject("status.http_5xx", ((self.http_5xx / self.duration) * 60), "Responses per min"),
+
+            MetricObject("status.explicit.http_429", ((self.http_429 / self.duration) * 60), "Responses per min"),
         ]
 
         return metrics
