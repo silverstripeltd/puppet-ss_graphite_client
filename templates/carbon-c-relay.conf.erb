@@ -1,0 +1,11 @@
+# File managed by Puppet
+#
+# Forward all to metrics server
+cluster metric-server
+    forward
+        <%= graphite_server %>:<%= graphite_port %>
+    ;
+
+match * 
+    send to metric-server
+    ;
