@@ -13,7 +13,7 @@ PATTERN="\s*[0-9]\s*[0-9]\s*[0-9]\s*$"
 #  7287 7287 7605
 # Reading: 0 Writing: 1 Waiting: 1
 
-unset http_proxy && curl --connect-timeout 1 -sb --header 'Host: nginxstatus' http://localhost/nginx_status 2> /dev/null | while read -r LINE; do
+unset http_proxy && curl --connect-timeout 1 -s --header 'Host: nginxstatus' http://localhost/nginx_status 2> /dev/null | while read -r LINE; do
 
   set -- $LINE
 
