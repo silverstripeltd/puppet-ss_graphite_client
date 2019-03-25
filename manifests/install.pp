@@ -6,19 +6,6 @@ class ss_graphite_client::install inherits ss_graphite_client {
     logster: ensure => installed;
   }
 
-  # Remove legacy version of logster (compiled, not packaged)
-  file {"/usr/sbin/logster":
-    ensure => absent,
-  }
-  # Remove legacy graphite scripts
-  file {'remove-graphite-scripts':
-    ensure  => absent,
-    path    => '/usr/share/graphite-scripts',
-    recurse => true,
-    purge   => true,
-    force   => true,
-  }
-  # Install SS Logster parsers
   file {"/usr/lib/python2.7/dist-packages/logster/parsers":
     recurse => true,
     owner => root,
@@ -52,75 +39,78 @@ class ss_graphite_client::install inherits ss_graphite_client {
       source  => "puppet:///modules/ss_graphite_client/graphite_functions.php",
   }
 
-  # Setup and install carbon-c-relay
-  if $lsbdistcodename == 'jessie' {
+  if $use_carbon_c_relay == true {
+    if $lsbdistcodename == 'jessie' {
+      file { "/usr/src/carbon-c-relay_2.5-1~bpo8+1_amd64.deb":
+        ensure => present,
+        owner => root,
+        group => root,
+        mode => 0644,
+        source => 'puppet:///modules/ss_graphite_client/carbon-c-relay_2.5-1~bpo8+1_amd64.deb',
+      }
+      package { "carbon-c-relay":
+        ensure => latest,
+        provider => dpkg,
+        source => '/usr/src/carbon-c-relay_2.5-1~bpo8+1_amd64.deb',
+        require => File['/usr/src/carbon-c-relay_2.5-1~bpo8+1_amd64.deb'],
+      }
+    } else {
+      package { "carbon-c-relay":
+        ensure => latest,
+      }
+    }
 
-    file { "/usr/src/carbon-c-relay_2.5-1~bpo8+1_amd64.deb":
+    file { "/etc/carbon-c-relay.conf":
       ensure => present,
       owner => root,
       group => root,
       mode => 0644,
-      source => 'puppet:///modules/ss_graphite_client/carbon-c-relay_2.5-1~bpo8+1_amd64.deb',
+      content => template('ss_graphite_client/carbon-c-relay.conf.erb'),
+      require => Package['carbon-c-relay'],
+      notify => Service['carbon-c-relay'],
     }
-    package { "carbon-c-relay":
-      ensure => latest,
-      provider => dpkg,
-      source => '/usr/src/carbon-c-relay_2.5-1~bpo8+1_amd64.deb',
-      require => File['/usr/src/carbon-c-relay_2.5-1~bpo8+1_amd64.deb'],
+    file { "/etc/default/carbon-c-relay":
+      ensure => present,
+      owner => root,
+      group => root,
+      mode => 0644,
+      content => template('ss_graphite_client/carbon-c-relay.defaults.erb'),
+      require => Package['carbon-c-relay'],
+      notify => Service['carbon-c-relay'],
     }
 
+    service { "carbon-c-relay":
+      enable => true,
+      ensure => running,
+      hasstatus => true,
+      hasrestart => true,
+    }
+
+    # Metrics always sent to relay @ localhost on port 2013.
+    file { "/etc/cron.d/graphite-scripts":
+      ensure  => present,
+      owner   => root,
+      group   => root,
+      mode    => 755,
+      content => "* * * * *       root    run-parts /opt/graphite/scripts --arg=localhost --arg=${relay_port} >/dev/null 2>&1\n",
+      require => File['/opt/graphite/scripts'],
+    }
+    file { "/etc/cron.d/graphite-scripts-daily":
+      ensure  => present,
+      owner   => root,
+      group   => root,
+      mode    => 0755,
+      content => "34 4 * * *       root    run-parts /opt/graphite/scripts-daily --arg=localhost --arg=${relay_port} >/dev/null 2>&1\n",
+      require => File['/opt/graphite/scripts-daily'],
+    }
   } else {
-
-    package { "carbon-c-relay":
-      ensure => latest,
+    file { "/etc/cron.d/graphite-scripts":
+      ensure  => present,
+      owner   => root,
+      group   => root,
+      mode    => 755,
+      content => "* * * * *       root    run-parts /opt/graphite/scripts --arg=localhost --arg=${graphite_port} >/dev/null 2>&1\n",
+      require => File['/opt/graphite/scripts'],
     }
-
   }
-
-  file { "/etc/carbon-c-relay.conf":
-    ensure => present,
-    owner => root,
-    group => root,
-    mode => 0644,
-    content => template('ss_graphite_client/carbon-c-relay.conf.erb'),
-    require => Package['carbon-c-relay'],
-    notify => Service['carbon-c-relay'],
-  }
-
-  file { "/etc/default/carbon-c-relay":
-    ensure => present,
-    owner => root,
-    group => root,
-    mode => 0644,
-    content => template('ss_graphite_client/carbon-c-relay.defaults.erb'),
-    require => Package['carbon-c-relay'],
-    notify => Service['carbon-c-relay'],
-  }
-
-  service { "carbon-c-relay":
-    enable => true,
-    ensure => running,
-    hasstatus => true,
-    hasrestart => true,
-  }
-
-  # Metrics always sent to relay @ localhost on port 2013.
-  file { "/etc/cron.d/graphite-scripts":
-  ensure  => present,
-  owner   => root,
-  group   => root,
-  mode    => 755,
-  content => "* * * * *       root    run-parts /opt/graphite/scripts --arg=localhost --arg=2013 >/dev/null 2>&1\n",
-  require => File['/opt/graphite/scripts'],
-  }
-
-  file { "/etc/cron.d/graphite-scripts-daily":
-  ensure  => present,
-  owner   => root,
-  group   => root,
-  mode    => 0755,
-  content => "34 4 * * *       root    run-parts /opt/graphite/scripts-daily --arg=localhost --arg=2013 >/dev/null 2>&1\n",
-  require => File['/opt/graphite/scripts-daily'],
-  }
-
 }
