@@ -85,32 +85,27 @@ class ss_graphite_client::install inherits ss_graphite_client {
       hasstatus => true,
       hasrestart => true,
     }
+  }
 
-    # Metrics always sent to relay @ localhost on port 2013.
-    file { "/etc/cron.d/graphite-scripts":
-      ensure  => present,
-      owner   => root,
-      group   => root,
-      mode    => 755,
-      content => "* * * * *       root    run-parts /opt/graphite/scripts --arg=localhost --arg=${relay_port} >/dev/null 2>&1\n",
-      require => File['/opt/graphite/scripts'],
-    }
-    file { "/etc/cron.d/graphite-scripts-daily":
-      ensure  => present,
-      owner   => root,
-      group   => root,
-      mode    => 0755,
-      content => "34 4 * * *       root    run-parts /opt/graphite/scripts-daily --arg=localhost --arg=${relay_port} >/dev/null 2>&1\n",
-      require => File['/opt/graphite/scripts-daily'],
-    }
+  if $use_carbon_c_relay == true {
+    $graphite_cron_port = $relay_port
   } else {
-    file { "/etc/cron.d/graphite-scripts":
-      ensure  => present,
-      owner   => root,
-      group   => root,
-      mode    => 755,
-      content => "* * * * *       root    run-parts /opt/graphite/scripts --arg=localhost --arg=${graphite_port} >/dev/null 2>&1\n",
-      require => File['/opt/graphite/scripts'],
-    }
+    $graphite_cron_port = $graphite_port
+  }
+  file { "/etc/cron.d/graphite-scripts":
+    ensure  => present,
+    owner   => root,
+    group   => root,
+    mode    => 755,
+    content => "* * * * *       root    run-parts /opt/graphite/scripts --arg=localhost --arg=${graphite_cron_port} >/dev/null 2>&1\n",
+    require => File['/opt/graphite/scripts'],
+  }
+  file { "/etc/cron.d/graphite-scripts-daily":
+    ensure  => present,
+    owner   => root,
+    group   => root,
+    mode    => 0755,
+    content => "34 4 * * *       root    run-parts /opt/graphite/scripts-daily --arg=localhost --arg=${graphite_cron_port} >/dev/null 2>&1\n",
+    require => File['/opt/graphite/scripts-daily'],
   }
 }
