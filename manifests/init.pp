@@ -1,7 +1,7 @@
 class ss_graphite_client (
-	$graphite_server = "localhost",
-	$graphite_port = "2003",
-	$relay_port = "2013",
+	$graphite_server = 'localhost',
+	$graphite_port = '2003',
+	$relay_port = '2013',
 	$use_carbon_c_relay = true,
 	$configure_tcp_queue_size_metric = true,
 ) {

@@ -3,7 +3,7 @@
 # Forward all to metrics server
 cluster metric-server
     forward
-        <%= graphite_server %>:<%= graphite_port %>
+        <%= @graphite_server %>:<%= @graphite_port %>
     ;
 
 match * 
