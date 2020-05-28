@@ -1,11 +1,36 @@
 class ss_graphite_client::install inherits ss_graphite_client {
 
   package {
-    'realpath': ensure => installed;
     'logtail': ensure => installed;
-    'logster': ensure => installed;
   }
-
+  
+  #package names are unstable between releases
+  if $facts['lsbdistcodename'] == 'jessie' {
+    package {
+    'realpath': ensure => installed;
+    'logster': ensure => installed;
+    }
+  }
+  #logster no longer included as of buster
+  #so we can install via the stretch deb (last possible debian package version)
+  if $facts['lsbdistcodename'] == 'buster' {
+    file { '/usr/src/logster_0.0.1-2_all.deb':
+      mode => '0600',
+      owner => root,
+      group => root,
+      source => 'puppet:///modules/ss_graphite_client/logster_0.0.1-2_all.deb',
+    }
+    package { 'logster':
+      ensure   => latest,
+      provider => dpkg,
+      source   => '/usr/src/logster_0.0.1-2_all.deb'
+    }
+    package { 'logsterDeps':
+      ensure => installed,
+      name => 'python-pkg-resources',
+      before => Package['logster']
+    }
+  }
   file {'/usr/lib/python2.7/dist-packages/logster/parsers':
     recurse => true,
     owner => root,
