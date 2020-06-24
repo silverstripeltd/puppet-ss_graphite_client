@@ -90,7 +90,7 @@ MEM=`grep MemAvailable /proc/meminfo | awk '{print $2*1024}'`
 send "$PREFIX.memory.available" "$MEM"
 
 # IO Stats
-iostat_line=`iostat -cy 1 2 | awk 'NF > 0' | awk 'FNR==5'`
+iostat_line=`iostat -cy 1 2 | grep -A1 -e '^avg-cpu' | grep -ve '^avg-cpu' | awk 'FNR==3'`
 rc=$?
 if [ $rc -eq 0 ]; then
   set -- $iostat_line
