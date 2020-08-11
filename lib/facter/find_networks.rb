@@ -10,7 +10,7 @@ def has_address(interface)
     true
   end
 end
- 
+
 def is_private(interface)
   rfc1918 = Regexp.new('^10\.|^172\.(?:1[6-9]|2[0-9]|3[0-1])\.|^192\.168\.')
   ip = Facter::Util::IP.get_interface_value(interface, 'ipaddress')
@@ -20,7 +20,7 @@ def is_private(interface)
     false
   end
 end
- 
+
 def find_networks
   found_public = found_private = false
   Facter::Util::IP.get_interfaces.each do |interface|
@@ -37,11 +37,11 @@ def find_networks
   end
   [found_public, found_private]
 end
- 
+
 # these facts check if any interface is on a public or private network
 # they return the string true or false
 # this fact will always be present
- 
+
 Facter.add(:on_public) do
   confine :kernel => Facter::Util::IP.supported_platforms
   setcode do
@@ -49,7 +49,7 @@ Facter.add(:on_public) do
     found_public
   end
 end
- 
+
 Facter.add(:on_private) do
   confine :kernel => Facter::Util::IP.supported_platforms
   setcode do
@@ -57,11 +57,11 @@ Facter.add(:on_private) do
     found_private
   end
 end
- 
+
 # these facts return the first public or private ip address found
 # when iterating over the interfaces in alphabetical order
 # if no matching address is found the fact won't be present
- 
+
 Facter.add(:ipaddress_public) do
   confine :kernel => Facter::Util::IP.supported_platforms
   setcode do
@@ -80,7 +80,7 @@ Facter.add(:ipaddress_public) do
     ip
   end
 end
- 
+
 Facter.add(:ipaddress_private) do
   confine :kernel => Facter::Util::IP.supported_platforms
   setcode do

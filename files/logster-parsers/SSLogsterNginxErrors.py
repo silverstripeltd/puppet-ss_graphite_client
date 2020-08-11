@@ -4,6 +4,7 @@ import re
 from logster.logster_helper import MetricObject, LogsterParser
 from logster.logster_helper import LogsterParsingException
 
+
 class SSLogsterNginxErrors(LogsterParser):
 
     def __init__(self, option_string=None):
@@ -11,11 +12,10 @@ class SSLogsterNginxErrors(LogsterParser):
         of the tasty bits we find in the log we are parsing.'''
         self.errors = 0
         self.req_limit_errors = 0
- 
+
         # Regular expression for matching lines we are interested in, and capturing
         # fields from the line (in this case, http_status_code).
         self.reg_req_limit = re.compile('.*limiting requests.*')
-
 
     def parse_line(self, line):
         '''This function should digest the contents of one line at a time, updating
@@ -28,7 +28,7 @@ class SSLogsterNginxErrors(LogsterParser):
 
         if regMatch:
             self.req_limit_errors += 1
-    
+
     def get_state(self, duration):
         '''Run any necessary calculations on the data collected from the logs
         and return a list of metric objects.'''
@@ -36,6 +36,8 @@ class SSLogsterNginxErrors(LogsterParser):
 
         # Return a list of metrics objects
         return [
-            MetricObject("errors.errors", (self.errors / self.duration) * 60, "Errors per minute"),
-            MetricObject("errors.req-limit-errors", (self.req_limit_errors / self.duration) * 60, "Request limit errors per minute"),
+            MetricObject("errors.errors", (self.errors /
+                                           self.duration) * 60, "Errors per minute"),
+            MetricObject("errors.req-limit-errors", (self.req_limit_errors /
+                                                     self.duration) * 60, "Request limit errors per minute"),
         ]

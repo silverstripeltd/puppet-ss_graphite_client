@@ -1,8 +1,8 @@
-### File managed by puppet
+# File managed by puppet
 ###
-###  SS logster parser to process Graphite based apache log
-###  
-###  sudo ./logster --dry-run --output=ganglia SSLogster /var/log/httpd/access_log
+# SS logster parser to process Graphite based apache log
+###
+# sudo ./logster --dry-run --output=ganglia SSLogster /var/log/httpd/access_log
 ###
 
 import time
@@ -13,6 +13,7 @@ import socket
 
 from logster.logster_helper import MetricObject, LogsterParser
 from logster.logster_helper import LogsterParsingException
+
 
 class SSLogster(LogsterParser):
 
@@ -48,9 +49,8 @@ class SSLogster(LogsterParser):
         # Regular expression for matching lines we are interested in, and capturing
         # fields from the line (each value split by space).
 
-        self.reg = re.compile('^(\S+) \S+ \S+ \[([^\]]+)\] "(?P<req_type>[A-Z]+)(?P<req_string>[^"]*)" (?P<status_code>\d+) (?P<req_size>\d+) "[^"]*" "(?P<req_ua>[^"]*)" (?P<req_time>\d+)')
-
-
+        self.reg = re.compile(
+            '^(\S+) \S+ \S+ \[([^\]]+)\] "(?P<req_type>[A-Z]+)(?P<req_string>[^"]*)" (?P<status_code>\d+) (?P<req_size>\d+) "[^"]*" "(?P<req_ua>[^"]*)" (?P<req_time>\d+)')
 
     def parse_line(self, line):
         '''This function should digest the contents of one line at a time, updating
@@ -69,7 +69,7 @@ class SSLogster(LogsterParser):
                 status = int(linebits['status_code'])
 
                 req_type = str(linebits['req_type'])
-                req_ua   = str(linebits['req_ua'])
+                req_ua = str(linebits['req_ua'])
 
                 req_string = str(linebits['req_string'])
 
@@ -91,7 +91,7 @@ class SSLogster(LogsterParser):
 
                 # Process request time and size
                 if (req_size != 0) and (req_time != 0):
-                    
+
                     if req_size > self.reqsize_high:
                         self.reqsize_high = req_size
 
@@ -122,8 +122,6 @@ class SSLogster(LogsterParser):
         except Exception, e:
             raise LogsterParsingException, "regmatch or contents failed with %s" % e
 
-
-
     def get_state(self, duration):
         '''Run any necessary calculations on the data collected from the logs
         and return a list of metric objects.'''
@@ -139,35 +137,46 @@ class SSLogster(LogsterParser):
         # Return a list of metrics objects
         metrics = [
             MetricObject("request.time_avg",  (reqtime_avg / 1000), "ms"),
-            MetricObject("request.time_high", (self.reqtime_high / 1000), "ms"),
+            MetricObject("request.time_high",
+                         (self.reqtime_high / 1000), "ms"),
             MetricObject("request.time_low",  (self.reqtime_low / 1000), "ms"),
-            MetricObject("request.time_95",   (self.percentile(self.reqtime_list, 0.95) / 1000), "ms"),
-            MetricObject("request.time_05",   (self.percentile(self.reqtime_list, 0.05) / 1000), "ms"),
+            MetricObject("request.time_95",   (self.percentile(
+                self.reqtime_list, 0.95) / 1000), "ms"),
+            MetricObject("request.time_05",   (self.percentile(
+                self.reqtime_list, 0.05) / 1000), "ms"),
 
             MetricObject("request.size_avg",  (reqsize_avg), "B"),
             MetricObject("request.size_high", (self.reqsize_high), "B"),
             MetricObject("request.size_low",  (self.reqsize_low), "B"),
-            MetricObject("request.size_95",   (self.percentile(self.reqsize_list, 0.95)), "B"),
-            MetricObject("request.size_05",   (self.percentile(self.reqsize_list, 0.05)), "B"),
+            MetricObject("request.size_95",
+                         (self.percentile(self.reqsize_list, 0.95)), "B"),
+            MetricObject("request.size_05",
+                         (self.percentile(self.reqsize_list, 0.05)), "B"),
             MetricObject("request.size_total",  (self.reqsize_tot), "B"),
 
-            MetricObject("request.get_count", ((self.getreq  / self.duration) * 60), "Responses per min"),
-            MetricObject("request.post_count", ((self.postreq / self.duration) * 60), "Responses per min"),
+            MetricObject("request.get_count", ((
+                self.getreq / self.duration) * 60), "Responses per min"),
+            MetricObject("request.post_count", ((self.postreq /
+                                                 self.duration) * 60), "Responses per min"),
             MetricObject("request.dyn_count", self.dynreq, "requests"),
-            MetricObject("request.req_per_min", ((self.reqcnt / self.duration) * 60), "Responses per min"),
+            MetricObject("request.req_per_min", ((
+                self.reqcnt / self.duration) * 60), "Responses per min"),
 
-            MetricObject("status.http_1xx", ((self.http_1xx / self.duration) * 60), "Responses per min"),
-            MetricObject("status.http_2xx", ((self.http_2xx / self.duration) * 60), "Responses per min"),
-            MetricObject("status.http_3xx", ((self.http_3xx / self.duration) * 60), "Responses per min"),
-            MetricObject("status.http_4xx", ((self.http_4xx / self.duration) * 60), "Responses per min"),
-            MetricObject("status.http_5xx", ((self.http_5xx / self.duration) * 60), "Responses per min"),
+            MetricObject("status.http_1xx", ((self.http_1xx /
+                                              self.duration) * 60), "Responses per min"),
+            MetricObject("status.http_2xx", ((self.http_2xx /
+                                              self.duration) * 60), "Responses per min"),
+            MetricObject("status.http_3xx", ((self.http_3xx /
+                                              self.duration) * 60), "Responses per min"),
+            MetricObject("status.http_4xx", ((self.http_4xx /
+                                              self.duration) * 60), "Responses per min"),
+            MetricObject("status.http_5xx", ((self.http_5xx /
+                                              self.duration) * 60), "Responses per min"),
         ]
 
         return metrics
 
-
-
-    def percentile(self, N, percent, key=lambda x:x):
+    def percentile(self, N, percent, key=lambda x: x):
         """
         Find the percentile of a list of values.
 
