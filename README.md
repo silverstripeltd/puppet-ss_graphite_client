@@ -33,7 +33,7 @@ First, copy one of the following templates as your base:
 
 These show you how to include the *graphite-functions* library. This library allows you to easily send metrics to graphite using the functions they expose (such as `send` or `sendHash`). By convention, the metric key is built by applying the prefix (also exposed from the library).
 
-The metrics are enabled by simply adding them to `/opt/graphite/scripts` or `/opt/graphite/scripts-daily`. Bundle the file resources in a metric class, for example:
+The metrics are enabled by simply adding them to `/opt/graphite/scripts`, `/opt/graphite/scripts-hourly` or `/opt/graphite/scripts-daily`. Bundle the file resources in a metric class, for example:
 
 ```puppet
 
