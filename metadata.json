@@ -1,24 +1,23 @@
 {
-  "name": "silverstripe-ss_graphite_client",
-  "version": "1.0.0",
-  "author": "SilverStripe Ltd",
-  "summary": "Base library for creatng metrics",
-  "license": "BSD-3-Clause",
-  "source": "https://github.com/silverstripeltd/puppet-ss_graphite_client",
-  "project_page": "https://github.com/silverstripeltd/puppet-ss_graphite_client",
-  "issues_url": "https://github.com/silverstripeltd/puppet-ss_graphite_client/issues",
-  "dependencies": [
-  ],
-  "data_provider": null,
-  "operatingsystem_support": [
-    {
-      "operatingsystem": "Debian",
-      "operatingsystemrelease": [
-        "8"
-      ]
-    }
-  ],
-  "tags": [
-    "metrics"
-  ]
+	"name": "silverstripe-ss_graphite_client",
+	"version": "1.0.0",
+	"author": "SilverStripe Ltd",
+	"summary": "Base library for creatng metrics",
+	"license": "BSD-3-Clause",
+	"source": "https://github.com/silverstripeltd/puppet-ss_graphite_client",
+	"project_page": "https://github.com/silverstripeltd/puppet-ss_graphite_client",
+	"issues_url": "https://github.com/silverstripeltd/puppet-ss_graphite_client/issues",
+	"dependencies": [],
+	"data_provider": null,
+	"operatingsystem_support": [
+		{
+			"operatingsystem": "Debian",
+			"operatingsystemrelease": [
+				"8"
+			]
+		}
+	],
+	"tags": [
+		"metrics"
+	]
 }

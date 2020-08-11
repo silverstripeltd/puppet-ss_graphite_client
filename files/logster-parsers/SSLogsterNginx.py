@@ -1,8 +1,8 @@
-### File managed by puppet
+# File managed by puppet
 ###
-###  SS logster parser to process Graphite based nginx log
-###  
-###  sudo ./logster --dry-run --output=ganglia SSLogsterNginx /var/log/httpd/access_log
+# SS logster parser to process Graphite based nginx log
+###
+# sudo ./logster --dry-run --output=ganglia SSLogsterNginx /var/log/httpd/access_log
 ###
 
 import time
@@ -10,6 +10,7 @@ import re
 
 from logster.logster_helper import MetricObject, LogsterParser
 from logster.logster_helper import LogsterParsingException
+
 
 class SSLogsterNginx(LogsterParser):
 
@@ -28,7 +29,8 @@ class SSLogsterNginx(LogsterParser):
         self.postreq = 0
 
         # Regular expression for matching lines we are interested in
-        self.reg = re.compile('^(\S+) \S+ \S+ \[([^\]]+)\] "(?P<req_type>[A-Z]+)[^"]*" (?P<status_code>\d+) (?P<req_size>\d+) "[^"]*" "(?P<req_ua>[^"]*)"')
+        self.reg = re.compile(
+            '^(\S+) \S+ \S+ \[([^\]]+)\] "(?P<req_type>[A-Z]+)[^"]*" (?P<status_code>\d+) (?P<req_size>\d+) "[^"]*" "(?P<req_ua>[^"]*)"')
 
     def parse_line(self, line):
         '''This function should digest the contents of one line at a time, updating
@@ -82,17 +84,26 @@ class SSLogsterNginx(LogsterParser):
 
         # Return a list of metrics objects
         metrics = [
-            MetricObject("request.get_count", ((self.getreq  / self.duration) * 60), "Responses per min"),
-            MetricObject("request.post_count", ((self.postreq / self.duration) * 60), "Responses per min"),
-            MetricObject("request.req_per_min", ((self.reqcnt / self.duration) * 60), "Responses per min"),
+            MetricObject("request.get_count", ((
+                self.getreq / self.duration) * 60), "Responses per min"),
+            MetricObject("request.post_count", ((self.postreq /
+                                                 self.duration) * 60), "Responses per min"),
+            MetricObject("request.req_per_min", ((
+                self.reqcnt / self.duration) * 60), "Responses per min"),
 
-            MetricObject("status.http_1xx", ((self.http_1xx / self.duration) * 60), "Responses per min"),
-            MetricObject("status.http_2xx", ((self.http_2xx / self.duration) * 60), "Responses per min"),
-            MetricObject("status.http_3xx", ((self.http_3xx / self.duration) * 60), "Responses per min"),
-            MetricObject("status.http_4xx", ((self.http_4xx / self.duration) * 60), "Responses per min"),
-            MetricObject("status.http_5xx", ((self.http_5xx / self.duration) * 60), "Responses per min"),
+            MetricObject("status.http_1xx", ((self.http_1xx /
+                                              self.duration) * 60), "Responses per min"),
+            MetricObject("status.http_2xx", ((self.http_2xx /
+                                              self.duration) * 60), "Responses per min"),
+            MetricObject("status.http_3xx", ((self.http_3xx /
+                                              self.duration) * 60), "Responses per min"),
+            MetricObject("status.http_4xx", ((self.http_4xx /
+                                              self.duration) * 60), "Responses per min"),
+            MetricObject("status.http_5xx", ((self.http_5xx /
+                                              self.duration) * 60), "Responses per min"),
 
-            MetricObject("status.explicit.http_429", ((self.http_429 / self.duration) * 60), "Responses per min"),
+            MetricObject("status.explicit.http_429", ((
+                self.http_429 / self.duration) * 60), "Responses per min"),
         ]
 
         return metrics

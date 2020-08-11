@@ -1,8 +1,8 @@
-### File managed by puppet
+# File managed by puppet
 ###
-###  SS logster parser to process Graphite based apache log
+# SS logster parser to process Graphite based apache log
 ###
-###  sudo logster --dry-run --output=graphite --graphite-host=localhost:2003 SolrLogster /sites/solrproxy/logs/apache.access.log
+# sudo logster --dry-run --output=graphite --graphite-host=localhost:2003 SolrLogster /sites/solrproxy/logs/apache.access.log
 ###
 
 import time
@@ -14,6 +14,7 @@ import socket
 from logster.logster_helper import MetricObject, LogsterParser
 from logster.logster_helper import LogsterParsingException
 
+
 class SolrLogster(LogsterParser):
 
     def __init__(self, option_string=None):
@@ -24,7 +25,8 @@ class SolrLogster(LogsterParser):
         # Regular expression for matching lines we are interested in, and capturing
         # fields from the line (each value split by space).
 
-        self.reg = re.compile('^(\S+) \S+ (?P<req_env>\S+) \[([^\]]+)\] "(?P<req_type>[A-Z]+)(?P<req_string>[^"]*)" (?P<status_code>\d+) (?P<req_size>\d+) "[^"]*" "\S+" (?P<req_time>\d+)')
+        self.reg = re.compile(
+            '^(\S+) \S+ (?P<req_env>\S+) \[([^\]]+)\] "(?P<req_type>[A-Z]+)(?P<req_string>[^"]*)" (?P<status_code>\d+) (?P<req_size>\d+) "[^"]*" "\S+" (?P<req_time>\d+)')
 
     def parse_line(self, line):
         '''This function should digest the contents of one line at a time, updating
@@ -43,7 +45,7 @@ class SolrLogster(LogsterParser):
                 status = int(linebits['status_code'])
 
                 req_type = str(linebits['req_type'])
-                req_env  = str(linebits['req_env'])
+                req_env = str(linebits['req_env'])
 
                 req_string = str(linebits['req_string'])
 
@@ -112,26 +114,35 @@ class SolrLogster(LogsterParser):
         for key, value in self.solrstats.iteritems():
 
             if value["select_per_min"] > 0:
-                metrics.append(MetricObject(key + ".select_time_avg", (value["select_time_total"] / value["select_per_min"])))
-                metrics.append(MetricObject(key + ".select_per_min",  (value["select_per_min"])))
-                metrics.append(MetricObject(key + ".select_time_max", (value["select_time_max"])))
-                metrics.append(MetricObject(key + ".select_time_min", (value["select_time_min"])))
+                metrics.append(MetricObject(
+                    key + ".select_time_avg", (value["select_time_total"] / value["select_per_min"])))
+                metrics.append(MetricObject(
+                    key + ".select_per_min",  (value["select_per_min"])))
+                metrics.append(MetricObject(
+                    key + ".select_time_max", (value["select_time_max"])))
+                metrics.append(MetricObject(
+                    key + ".select_time_min", (value["select_time_min"])))
 
             if value["update_per_min"] > 0:
-                metrics.append(MetricObject(key + ".update_time_avg", (value["update_time_total"] / value["update_per_min"])))
-                metrics.append(MetricObject(key + ".update_per_min",  (value["update_per_min"])))
-                metrics.append(MetricObject(key + ".update_time_max", (value["update_time_max"])))
-                metrics.append(MetricObject(key + ".update_time_min", (value["update_time_min"])))
+                metrics.append(MetricObject(
+                    key + ".update_time_avg", (value["update_time_total"] / value["update_per_min"])))
+                metrics.append(MetricObject(
+                    key + ".update_per_min",  (value["update_per_min"])))
+                metrics.append(MetricObject(
+                    key + ".update_time_max", (value["update_time_max"])))
+                metrics.append(MetricObject(
+                    key + ".update_time_min", (value["update_time_min"])))
 
-            metrics.append(MetricObject(key + ".http_2xx", (value["http_2xx"])))
-            metrics.append(MetricObject(key + ".http_4xx", (value["http_4xx"])))
-            metrics.append(MetricObject(key + ".http_5xx", (value["http_5xx"])))
+            metrics.append(MetricObject(
+                key + ".http_2xx", (value["http_2xx"])))
+            metrics.append(MetricObject(
+                key + ".http_4xx", (value["http_4xx"])))
+            metrics.append(MetricObject(
+                key + ".http_5xx", (value["http_5xx"])))
 
         return metrics
 
-
-
-    def percentile(self, N, percent, key=lambda x:x):
+    def percentile(self, N, percent, key=lambda x: x):
         """
         Find the percentile of a list of values.
 
