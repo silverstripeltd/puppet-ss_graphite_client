@@ -3,7 +3,7 @@ class ss_graphite_client::install inherits ss_graphite_client {
   package {
     'logtail': ensure => installed;
   }
-  
+
   #package names are unstable between releases
   if $facts['lsbdistcodename'] == 'jessie' {
     package {
@@ -43,6 +43,9 @@ class ss_graphite_client::install inherits ss_graphite_client {
     ensure => 'directory',
   }
   file {'/opt/graphite/scripts':
+    ensure => 'directory',
+  }
+  file {'/opt/graphite/scripts-hourly':
     ensure => 'directory',
   }
   file {'/opt/graphite/scripts-daily':
@@ -124,6 +127,14 @@ class ss_graphite_client::install inherits ss_graphite_client {
     mode    => '0755',
     content => "* * * * *       root    run-parts /opt/graphite/scripts --arg=localhost --arg=${graphite_cron_port} >/dev/null 2>&1\n",
     require => File['/opt/graphite/scripts'],
+  }
+  file { '/etc/cron.d/graphite-scripts-hourly':
+    ensure  => present,
+    owner   => root,
+    group   => root,
+    mode    => '0755',
+    content => "17 * * * *       root    run-parts /opt/graphite/scripts-hourly --arg=localhost --arg=${graphite_cron_port} >/dev/null 2>&1\n",
+    require => File['/opt/graphite/scripts-hourly'],
   }
   file { '/etc/cron.d/graphite-scripts-daily':
     ensure  => present,
