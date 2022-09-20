@@ -24,6 +24,7 @@ class SSLogsterNginx(LogsterParser):
         self.http_4xx = 0
         self.http_429 = 0
         self.http_5xx = 0
+        self.http_outage = 0
         self.getreq = 0
         self.postreq = 0
 
@@ -60,6 +61,9 @@ class SSLogsterNginx(LogsterParser):
                 else:
                     self.http_5xx += 1
 
+                if (status == 502 or status == 503 or status == 504):
+                    self.http_outage += 1
+
                 if (status == 429):
                     self.http_429 += 1
 
@@ -93,6 +97,7 @@ class SSLogsterNginx(LogsterParser):
             MetricObject("status.http_5xx", ((self.http_5xx / self.duration) * 60), "Responses per min"),
 
             MetricObject("status.explicit.http_429", ((self.http_429 / self.duration) * 60), "Responses per min"),
+            MetricObject("status.explicit.http_outage", ((self.http_outage / self.duration) * 60), "Responses per min"),
         ]
 
         return metrics
